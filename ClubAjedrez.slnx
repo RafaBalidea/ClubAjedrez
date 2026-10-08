@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="ClubAjedrez/ClubAjedrez.Shared/ClubAjedrez.Shared.csproj" />
+  <Project Path="ClubAjedrez/ClubAjedrez.Web.Client/ClubAjedrez.Web.Client.csproj" />
+  <Project Path="ClubAjedrez/ClubAjedrez.Web/ClubAjedrez.Web.csproj" />
+  <Project Path="ClubAjedrez/ClubAjedrez/ClubAjedrez.csproj" />
+</Solution>
