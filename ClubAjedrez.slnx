@@ -1,4 +1,6 @@
 <Solution>
+  <Project Path="ClubAjedrez.PlaywrightTests/ClubAjedrez.PlaywrightTests.csproj" Id="e3189e8e-fb02-4eeb-922e-5cecc2323999" />
+  <Project Path="ClubAjedrez.Test/ClubAjedrez.Tests.csproj" Id="412f1971-66ef-4f8f-a1ad-6a97a5fda857" />
   <Project Path="ClubAjedrez/ClubAjedrez.Shared/ClubAjedrez.Shared.csproj" />
   <Project Path="ClubAjedrez/ClubAjedrez.Web.Client/ClubAjedrez.Web.Client.csproj" />
   <Project Path="ClubAjedrez/ClubAjedrez.Web/ClubAjedrez.Web.csproj" />
