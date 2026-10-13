@@ -1,0 +1,94 @@
+@page "/personas"
+@inject IPersonasApi PersonasApi
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<PageTitle>Personas</PageTitle>
+
+<MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-4">
+    <MudText Typo="Typo.h4" HtmlTag="h1">Personas</MudText>
+    <MudButton Href="personas/nueva" Variant="Variant.Filled" Color="Color.Primary"
+               StartIcon="@Icons.Material.Filled.Add">Nueva persona</MudButton>
+</MudStack>
+
+@if (error is not null)
+{
+    <MudAlert Severity="Severity.Error" Class="mb-4">@error</MudAlert>
+}
+
+@if (personas is null)
+{
+    @if (error is null)
+    {
+        <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+    }
+}
+else if (personas.Count == 0)
+{
+    <MudText>No hay personas registradas.</MudText>
+}
+else
+{
+    @* Breakpoint.Sm: en pantallas pequeñas (móvil) cada fila se muestra como una tarjeta. *@
+    <MudTable Items="personas" Hover="true" Striped="true" Breakpoint="Breakpoint.Sm" Elevation="1">
+        <HeaderContent>
+            <MudTh>Apellidos, nombre</MudTh>
+            <MudTh>DNI</MudTh>
+            <MudTh>Email</MudTh>
+            <MudTh>Teléfono</MudTh>
+            <MudTh>Nacimiento</MudTh>
+            <MudTh></MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Apellidos, nombre">@context.Apellidos, @context.Nombre</MudTd>
+            <MudTd DataLabel="DNI">@context.Dni</MudTd>
+            <MudTd DataLabel="Email">@context.Email</MudTd>
+            <MudTd DataLabel="Teléfono">@context.Telefono</MudTd>
+            <MudTd DataLabel="Nacimiento">@context.FechaNacimiento?.ToString("dd/MM/yyyy")</MudTd>
+            <MudTd Style="text-align: right; white-space: nowrap">
+                <MudIconButton Href="@($"personas/{context.Id}")" Icon="@Icons.Material.Filled.Edit"
+                               Color="Color.Primary" aria-label="Editar" title="Editar" />
+                <MudIconButton OnClick="() => EliminarAsync(context)" Icon="@Icons.Material.Filled.Delete"
+                               Color="Color.Error" aria-label="Eliminar" title="Eliminar" />
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+}
+
+@code {
+    private List<PersonaDto>? personas;
+    private string? error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            personas = await PersonasApi.GetAllAsync();
+        }
+        catch (ApiExceptionBase)
+        {
+            error = "No se pudo cargar la lista de personas.";
+        }
+    }
+
+    private async Task EliminarAsync(PersonaDto persona)
+    {
+        var confirmado = await DialogService.ShowMessageBoxAsync(
+            "Eliminar persona",
+            $"¿Eliminar a {persona.Nombre} {persona.Apellidos}?",
+            yesText: "Eliminar", cancelText: "Cancelar");
+        if (confirmado != true) return;
+
+        error = null;
+        try
+        {
+            await PersonasApi.DeleteAsync(persona.Id);
+            personas?.Remove(persona);
+            Snackbar.Add("Persona eliminada.", Severity.Success);
+        }
+        catch (ApiExceptionBase)
+        {
+            error = "No se pudo eliminar la persona.";
+        }
+    }
+}

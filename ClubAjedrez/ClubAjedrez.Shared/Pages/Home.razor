@@ -1,14 +1,36 @@
-﻿@page "/"
-@using ClubAjedrez.Shared.Services
-@inject IFormFactor FormFactor
+@page "/"
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Club Xadrez Algalia</PageTitle>
 
-<h1>Hello, world!</h1>
+<MudStack Spacing="4">
+    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
+        <MudIcon Icon="@Icons.Material.Filled.Castle" Color="Color.Primary" Style="font-size: 3rem" />
+        <div>
+            <MudText Typo="Typo.h4" HtmlTag="h1">Club Xadrez Algalia</MudText>
+            <MudText Typo="Typo.subtitle1" Color="Color.Secondary">Gestión del club de ajedrez</MudText>
+        </div>
+    </MudStack>
 
-Welcome to your new app running on <em>@factor</em> using <em>@platform</em>.
+    <MudText>
+        Bienvenido a la aplicación del club. Desde aquí puedes gestionar las personas relacionadas con el club.
+    </MudText>
 
-@code {
-    private string factor => FormFactor.GetFormFactor();
-    private string platform => FormFactor.GetPlatform();
-}
+    <MudGrid Spacing="3">
+        <MudItem xs="12" sm="6" md="4">
+            <MudCard Elevation="1">
+                <MudCardContent>
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                        <MudIcon Icon="@Icons.Material.Filled.People" Color="Color.Primary" />
+                        <MudText Typo="Typo.h6" HtmlTag="h2">Personas</MudText>
+                    </MudStack>
+                    <MudText Typo="Typo.body2" Class="mt-2">
+                        Jugadores, rivales, miembros de la directiva y usuarios.
+                    </MudText>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Href="personas" Color="Color.Primary" EndIcon="@Icons.Material.Filled.ArrowForward">Ver personas</MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
+</MudStack>

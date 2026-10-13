@@ -9,7 +9,7 @@
 
         protected override Window CreateWindow(IActivationState? activationState)
         {
-            return new Window(new MainPage()) { Title = "ClubAjedrez" };
+            return new Window(new MainPage()) { Title = "Club Xadrez Algalia" };
         }
     }
 }

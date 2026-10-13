@@ -29,7 +29,7 @@
     <MauiXamlInflator>SourceGen</MauiXamlInflator>
 
     <!-- Display name -->
-    <ApplicationTitle>ClubAjedrez</ApplicationTitle>
+    <ApplicationTitle>Club Xadrez Algalia</ApplicationTitle>
 
     <!-- App Identifier -->
     <ApplicationId>com.companyname.clubajedrez</ApplicationId>

@@ -1,23 +1,36 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
 
-<div class="page">
-    <div class="sidebar">
+@* Proveedores de MudBlazor: tema, popovers (menús, selects, date pickers), diálogos y avisos. *@
+<MudThemeProvider />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+@* data-interactive: "true" cuando la página ya responde (tras el prerenderizado); lo esperan los tests E2E. *@
+<MudLayout data-interactive="@(RendererInfo.IsInteractive ? "true" : "false")">
+    <MudAppBar Elevation="1">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start"
+                       OnClick="() => menuAbierto = !menuAbierto" aria-label="Menú" />
+        <MudText Typo="Typo.h6" Class="ml-2">Club Xadrez Algalia</MudText>
+    </MudAppBar>
+
+    <MudDrawer @bind-Open="menuAbierto" ClipMode="DrawerClipMode.Always" Variant="DrawerVariant.Responsive" Elevation="1">
         <NavMenu />
-    </div>
+    </MudDrawer>
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div>
-
-        <article class="content px-4">
+    <MudMainContent>
+        <MudContainer MaxWidth="MaxWidth.Large" Class="py-4">
             @Body
-        </article>
-    </main>
-</div>
+        </MudContainer>
+    </MudMainContent>
+</MudLayout>
 
 <div id="blazor-error-ui" data-nosnippet>
     An unhandled error has occurred.
     <a href="." class="reload">Reload</a>
     <span class="dismiss">🗙</span>
 </div>
+
+@code {
+    private bool menuAbierto = true;
+}

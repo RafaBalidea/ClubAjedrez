@@ -1,6 +1,6 @@
-﻿using ClubAjedrez.Services;
-using ClubAjedrez.Shared.Services;
+﻿using ClubAjedrez.Contracts;
 using Microsoft.Extensions.Logging;
+using MudBlazor.Services;
 
 namespace ClubAjedrez
 {
@@ -16,10 +16,17 @@ namespace ClubAjedrez
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                 });
 
-            // Add device-specific services used by the ClubAjedrez.Shared project
-            builder.Services.AddSingleton<IFormFactor, FormFactor>();
-
             builder.Services.AddMauiBlazorWebView();
+
+            // Servicios de MudBlazor (diálogos, snackbar, popovers...) usados por ClubAjedrez.Shared
+            builder.Services.AddMudServices();
+
+            // Cliente Refit de ClubAjedrez.Api. El emulador de Android llega al localhost
+            // del PC a través de 10.0.2.2, por http (no confía en el certificado de desarrollo).
+            var apiBaseUrl = DeviceInfo.Platform == DevicePlatform.Android
+                ? "http://10.0.2.2:5207"
+                : "https://localhost:7166";
+            builder.Services.AddClubAjedrezApi(new Uri(apiBaseUrl));
 
 #if DEBUG
             builder.Services.AddBlazorWebViewDeveloperTools();

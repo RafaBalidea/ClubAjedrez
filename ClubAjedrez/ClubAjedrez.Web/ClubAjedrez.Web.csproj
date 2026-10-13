@@ -8,7 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ClubAjedrez.Web.Client\ClubAjedrez.Web.Client.csproj" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="10.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="10.0.12" />
   </ItemGroup>
 
 </Project>

@@ -1,6 +1,6 @@
-using ClubAjedrez.Shared.Services;
+using ClubAjedrez.Contracts;
 using ClubAjedrez.Web.Components;
-using ClubAjedrez.Web.Services;
+using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,8 +9,11 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents()
     .AddInteractiveWebAssemblyComponents();
 
-// Add device-specific services used by the ClubAjedrez.Shared project
-builder.Services.AddSingleton<IFormFactor, FormFactor>();
+// Servicios de MudBlazor (diálogos, snackbar, popovers...) usados por ClubAjedrez.Shared
+builder.Services.AddMudServices();
+
+// Cliente Refit de ClubAjedrez.Api (se usa al prerenderizar y en modo Server)
+builder.Services.AddClubAjedrezApi(new Uri(builder.Configuration["Api:BaseUrl"]!));
 
 var app = builder.Build();
 

@@ -1,0 +1,194 @@
+@page "/personas/nueva"
+@page "/personas/{Id:guid}"
+@using System.Net
+@using ClubAjedrez.Contracts
+@inject IPersonasApi PersonasApi
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+
+<PageTitle>@Titulo</PageTitle>
+
+<MudText Typo="Typo.h4" HtmlTag="h1" GutterBottom="true">@Titulo</MudText>
+
+@if (conflicto)
+{
+    @* El servidor gana: no se combinan cambios, solo se ofrece cargar su versión (readme.md, §12). *@
+    <MudAlert Severity="Severity.Warning" Class="mb-4">
+        <MudText>
+            Esta persona ha sido modificada por otro usuario. Tus cambios no se pueden guardar
+            porque estás trabajando sobre una versión anterior.
+        </MudText>
+        <MudButton OnClick="ActualizarYDescartarAsync" Variant="Variant.Filled" Color="Color.Warning"
+                   StartIcon="@Icons.Material.Filled.Refresh" Class="mt-2">Actualizar y descartar mis cambios</MudButton>
+    </MudAlert>
+}
+
+@if (error is not null)
+{
+    <MudAlert Severity="Severity.Error" Class="mb-4">@error</MudAlert>
+}
+
+@if (persona is not null)
+{
+    @* EditForm + DataAnnotationsValidator: las mismas validaciones de PersonaRequest que aplica la API.
+       novalidate: sin él, el atributo required que pone MudTextField (Required="true") hace que el
+       navegador bloquee el envío con su validación nativa y no se vean los mensajes de Blazor. *@
+    <EditForm Model="persona" OnValidSubmit="GuardarAsync" FormName="persona" novalidate>
+        <DataAnnotationsValidator />
+
+        <MudPaper Class="pa-4" Elevation="1" Style="max-width: 720px">
+            <MudGrid Spacing="2">
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="persona.Nombre" For="() => persona.Nombre" InputId="nombre"
+                                  Label="Nombre" Required="true" Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="persona.Apellidos" For="() => persona.Apellidos" InputId="apellidos"
+                                  Label="Apellidos" Required="true" Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="persona.Dni" For="() => persona.Dni" InputId="dni"
+                                  Label="DNI" Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudDatePicker @bind-Date="FechaNacimiento" Label="Fecha de nacimiento" Editable="true"
+                                   DateFormat="dd/MM/yyyy" Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="persona.Email" For="() => persona.Email" InputId="email"
+                                  Label="Email" InputType="InputType.Email" Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="persona.Telefono" For="() => persona.Telefono" InputId="telefono"
+                                  Label="Teléfono" InputType="InputType.Telephone" Variant="Variant.Outlined" />
+                </MudItem>
+            </MudGrid>
+
+            <MudStack Row="true" Class="mt-4">
+                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary"
+                           Disabled="guardando || conflicto">Guardar</MudButton>
+                <MudButton Href="personas" Variant="Variant.Text">Cancelar</MudButton>
+            </MudStack>
+        </MudPaper>
+    </EditForm>
+}
+else if (error is null)
+{
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+}
+
+@code {
+    [Parameter] public Guid? Id { get; set; }
+
+    private PersonaRequest? persona;
+    private string? error;
+    private bool guardando;
+    private bool conflicto;
+    // Registro actual que devolvió la API en el 409 (null si no se pudo leer del cuerpo).
+    private PersonaDto? versionServidor;
+
+    private bool EsNuevo => Id is null;
+    private string Titulo => EsNuevo ? "Nueva persona" : "Editar persona";
+
+    // MudDatePicker trabaja con DateTime?; el contrato usa DateOnly?.
+    private DateTime? FechaNacimiento
+    {
+        get => persona?.FechaNacimiento?.ToDateTime(TimeOnly.MinValue);
+        set => persona!.FechaNacimiento = value is null ? null : DateOnly.FromDateTime(value.Value);
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        error = null;
+        conflicto = false;
+        versionServidor = null;
+        if (EsNuevo)
+        {
+            persona = new PersonaRequest();
+            return;
+        }
+
+        persona = null;
+        try
+        {
+            persona = PersonaRequest.FromDto(await PersonasApi.GetByIdAsync(Id!.Value));
+        }
+        catch (ApiException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            error = "La persona no existe.";
+        }
+        catch (ApiExceptionBase)
+        {
+            error = "No se pudo cargar la persona.";
+        }
+    }
+
+    private async Task GuardarAsync()
+    {
+        guardando = true;
+        error = null;
+        try
+        {
+            if (EsNuevo)
+                await PersonasApi.CreateAsync(persona!);
+            else
+                await PersonasApi.UpdateAsync(Id!.Value, persona!);
+
+            Snackbar.Add("Persona guardada.", Severity.Success);
+            Navigation.NavigateTo("personas");
+        }
+        catch (ApiException ex) when (ex.StatusCode == HttpStatusCode.Conflict)
+        {
+            conflicto = true;
+            versionServidor = await LeerVersionServidorAsync(ex);
+        }
+        catch (ApiException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            error = "La persona ya no existe.";
+        }
+        catch (ApiExceptionBase)
+        {
+            error = "No se pudo guardar la persona.";
+        }
+        finally
+        {
+            guardando = false;
+        }
+    }
+
+    // Sustituye lo que hay en el formulario por la versión del servidor y descarta los cambios locales.
+    private async Task ActualizarYDescartarAsync()
+    {
+        error = null;
+        try
+        {
+            var actual = versionServidor ?? await PersonasApi.GetByIdAsync(Id!.Value);
+            persona = PersonaRequest.FromDto(actual);
+            conflicto = false;
+            versionServidor = null;
+            Snackbar.Add("Se ha cargado la versión actual. Tus cambios se han descartado.", Severity.Info);
+        }
+        catch (ApiException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            conflicto = false;
+            error = "La persona ya no existe.";
+        }
+        catch (ApiExceptionBase)
+        {
+            error = "No se pudo cargar la versión actual de la persona.";
+        }
+    }
+
+    private static async Task<PersonaDto?> LeerVersionServidorAsync(ApiException ex)
+    {
+        try
+        {
+            return (await ex.GetContentAsAsync<Conflicto<PersonaDto>>())?.Actual;
+        }
+        catch (Exception)
+        {
+            // Sin cuerpo legible: ActualizarYDescartarAsync la pedirá al servidor.
+            return null;
+        }
+    }
+}
