@@ -134,4 +134,4 @@ Until then, apply a script manually: `sqlcmd -S ULPT0176 -E -C -b -f 65001 -d cl
 
 ## Spec-driven workflow
 
-`my-project/` contains a GitHub Spec Kit setup (v1.1.2, PowerShell scripts) with `speckit-*` skills in `my-project/.claude/skills/` (specify → clarify → plan → tasks → implement, plus analyze/checklist/constitution). The constitution at `my-project/.specify/memory/constitution.md` is still the unfilled template.
+The repository root contains a GitHub Spec Kit setup (v1.1.2, PowerShell scripts): `.specify/` (templates, scripts, memory) and `speckit-*` skills in `.claude/skills/` (specify → clarify → plan → tasks → implement, plus analyze/checklist/constitution). The constitution at `.specify/memory/constitution.md` is still the unfilled template.
